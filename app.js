@@ -15,7 +15,7 @@ const tasks = [
   {
     "id": 2,
     "title": "Create a new project",
-    "description": "Create a new project using the Express application generator",
+    "description": "Create a project using the Express application generator",
     "completed": true,
     "created_at": "2024-04-20",
     "updated_at": null
