@@ -73,6 +73,22 @@ app.put('/tasks/:id', (req, res) => {
     }
 });
 
+app.delete('/tasks/:id', (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const task = tasks.find((task) => task.id === id);
+        if (!task) {
+            return res.status(404).json({ message: "Task not found" });
+        }
+        tasks.splice(tasks.indexOf(task), 1);
+        res.status(200).send(task);
+
+    } catch (error) {
+        console.error('Error occurred while processing DELETE /tasks/:id request:', error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
 app.listen(port, (err) => {
   if (err) {
     return console.log("Something bad happened", err);
