@@ -1,21 +1,62 @@
 const express = require("express");
 const app = express();
 const port = 3000;
+const dateNow  = require("./utils");
 
-const tasks = [];
+const tasks = [
+    {
+    "id": 1,
+    "title": "Set up environment",
+    "description": "Install Node.js, npm, and git",
+    "completed": true,
+    "created_at": "2024-04-24",
+    "updated_at": null
+  },
+  {
+    "id": 2,
+    "title": "Create a new project",
+    "description": "Create a new project using the Express application generator",
+    "completed": true,
+    "created_at": "2024-04-20",
+    "updated_at": null
+  },
+  {
+    "id": 3,
+    "title": "Install nodemon",
+    "description": "Install nodemon as a development dependency",
+    "completed": true,
+    "created_at": "2024-03-10",
+    "updated_at": null
+  }
+];
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.get("/tasks", (req, res) => {
-  try {
-    if (!tasks || tasks.length === 0) {
-      return res.status(200).json({ message: "No tasks available" });
+    try {
+      let filteredTasks = tasks;
+      const completed = req.query.completed;
+      const sortByDate = req.query.sortByDate;
+  
+      if (completed !== undefined) {
+        const isCompleted = completed.toLowerCase() === "true";
+        filteredTasks = tasks.filter(task => task.completed === isCompleted);
+      }
+      
+      if (sortByDate !== undefined && sortByDate.toLowerCase() === "true") {
+        filteredTasks.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      }
+  
+      if (filteredTasks.length === 0) {
+        return res.status(200).json({ message: "No tasks available" });
+      }
+      res.status(200).json(filteredTasks);
+  
+    } catch (error) {
+      console.error("Error occurred while processing tasks request:", error);
+      res.status(500).json({ error: "Internal Server Error" });
     }
-    res.status(200).send(tasks);
-  } catch (error) {
-    console.error("Error occurred while processing tasks request:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
 });
 
 app.get("/tasks/:id", (req, res) => {
@@ -34,13 +75,14 @@ app.get("/tasks/:id", (req, res) => {
 
 app.post("/tasks", (req, res) => {
   try {
-    const task = req.body;    
-    console.log(task);
+    const task = req.body;
+    task.id=tasks.length + 1;
+    task.created_at=task.created_at || dateNow();
+    task.updated_at=null;    
     if(!task.title || !task.description || typeof task.completed !== "boolean") {
         return res.status(400).json({error: "Invalid task data"});
     }
-
-    task.id=tasks.length + 1;
+    console.log(dateNow());
     tasks.push(task);
     res.status(201).send(task);
 
@@ -64,6 +106,7 @@ app.put('/tasks/:id', (req, res) => {
 
         task.title = updatedTask.title;
         task.description = updatedTask.description;
+        task.updated_at = dateNow();
         task.completed = updatedTask.completed;
         res.status(200).send(task);
 
@@ -88,6 +131,7 @@ app.delete('/tasks/:id', (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
 
 app.listen(port, (err) => {
   if (err) {
