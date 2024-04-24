@@ -1,7 +1,6 @@
 const express = require("express");
 const app = express();
 const port = 3000;
-const { uuidv4, uuid } = require("uuidv4");
 
 const tasks = [];
 
@@ -17,6 +16,20 @@ app.get("/tasks", (req, res) => {
     console.error("Error occurred while processing tasks request:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
+});
+
+app.get("/tasks/:id", (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const task = tasks.find((task) => task.id === id);
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      res.status(200).send(task);
+    } catch (error) {
+      console.error("Error occurred while processing GET /tasks/:id request:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
 });
 
 app.post("/tasks", (req, res) => {
@@ -35,6 +48,45 @@ app.post("/tasks", (req, res) => {
     console.error('Error occurred while processing POST /tasks request:', error);
     res.status(500).json({ error: "Internal Server Error" });
   }
+});
+
+app.put('/tasks/:id', (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const task = tasks.find((task) => task.id === id);
+        if (!task) {
+            return res.status(404).json({ message: "Task not found" });
+        }
+        const updatedTask = req.body;
+        if (!updatedTask.title || !updatedTask.description || typeof updatedTask.completed!== "boolean") {
+            return res.status(400).json({ error: "Invalid task data" });
+        }
+
+        task.title = updatedTask.title;
+        task.description = updatedTask.description;
+        task.completed = updatedTask.completed;
+        res.status(200).send(task);
+
+    } catch (error) {
+        console.error('Error occurred while processing PUT /tasks/:id request:', error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+app.delete('/tasks/:id', (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const task = tasks.find((task) => task.id === id);
+        if (!task) {
+            return res.status(404).json({ message: "Task not found" });
+        }
+        tasks.splice(tasks.indexOf(task), 1);
+        res.status(200).send(task);
+
+    } catch (error) {
+        console.error('Error occurred while processing DELETE /tasks/:id request:', error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
 });
 
 app.listen(port, (err) => {
